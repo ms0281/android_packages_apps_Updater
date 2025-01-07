@@ -112,11 +112,25 @@ public class Utils {
         return true;
     }
 
+    private static boolean compareVersions(String a, String b) {
+        try {
+            int majorA = Integer.parseInt(a.split("\\.")[0]);
+            int minorA = Integer.parseInt(a.split("\\.")[1]);
+
+            int majorB = Integer.parseInt(b.split("\\.")[0]);
+            int minorB = Integer.parseInt(b.split("\\.")[1]);
+
+            return majorA == majorB && minorA >= minorB;
+        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+            return false;
+        }
+    }
+
     public static boolean canInstall(UpdateBaseInfo update) {
         return (SystemProperties.getBoolean(Constants.PROP_UPDATER_ALLOW_DOWNGRADING, false) ||
                 update.getTimestamp() > SystemProperties.getLong(Constants.PROP_BUILD_DATE, 0)) &&
-                update.getVersion().equalsIgnoreCase(
-                        SystemProperties.get(Constants.PROP_BUILD_VERSION));
+                compareVersions(
+                        update.getVersion(), SystemProperties.get(Constants.PROP_BUILD_VERSION));
     }
 
     public static List<UpdateInfo> parseJson(File file, boolean compatibleOnly)
@@ -412,16 +426,5 @@ public class Utils {
 
     public static boolean isRecoveryUpdateExecPresent() {
         return new File(Constants.UPDATE_RECOVERY_EXEC).exists();
-    }
-
-    public static String getDisplayVersion(String version) {
-        float floatVersion = 0;
-        try {
-            floatVersion = Float.parseFloat(version);
-        } catch (NumberFormatException ignored) {
-            // ignore
-        }
-        // Lineage 20 and up should only be integer values (we don't have minor versions anymore)
-        return (floatVersion >= 20) ? String.valueOf((int)floatVersion) : version;
     }
 }
